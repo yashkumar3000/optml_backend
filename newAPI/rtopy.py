@@ -13,13 +13,55 @@ engine = create_engine("mysql+pymysql://{user}:{pw}@localhost/{db}".format(user=
 No_WorkingDays = 250
 Hours_perShift = 8
 ProductPrice = 10^7
-
+#Reading Health Facility Master
 df = pd.read_excel(sys.argv[1],sheet_name= 'Health Facility Master',index_col=None)
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-for col in df.columns:
-    if pd.notna(df[col][0]) and type(df[col][0]) == str:
-        df[col] = df[col].str.upper()
-        
+
+#Check for the empty sheet
+if df.shape[0] == 0:
+    print('Error:Health Facility Master sheet is empty')
+    sys.exit()
+
+#Required necessary columns
+healthFacilityMasterCols = ['Sites*', 'Address*', 'City*', 'Admin Area 1*', 'Country*', 'Latitude*',
+       'Longitude*', 'Admin Area 2*', 'Facility Level*', 'Sector*',
+       'HIVCapable*', 'TBCapable*', 'Factor 1', 'Factor 2', 'Factor 3','Factor 4', 'Location Type*', 'Status*', 'Notes']
+
+#Checking if all the necessary columns are present(additional check)
+if not all(item in df.columns for item in healthFacilityMasterCols):
+    print(f'Error:All required columns are not present in Health Facility Master sheet')
+    sys.exit()    
+
+#Adding only required columns to final dataframe.
+df = df[healthFacilityMasterCols]
+
+#Columns that cannot have null values in them.
+notNullCols = ['Sites*','Admin Area 1*', 'Country*', 'Latitude*',
+       'Longitude*', 'Admin Area 2*', 'Facility Level*', 'Sector*', 'Location Type*', 'Status*']
+
+#Checking for null value and blocking if found.
+for col in notNullCols:
+    if df[col].isna().values.any():
+        print(f'Error:Health Facilit Master Sheet has null value in its {col} column')
+        sys.exit()
+
+#Columnns having numeric values
+numCols = [ 'Latitude*','Longitude*']
+
+#Checking for type mismatch as well as converting them to appropriate datatypes.
+for col in numCols:
+    try:
+        df[col] = df[col].astype(float)
+    except:
+        print(f'Error:Datatype mismatch in {col} column in Health Facility Master sheet')
+        sys.exit()
+
+
+if df.shape[0] > 0:
+    for col in df.columns:
+        if pd.notna(df[col][0]) and type(df[col][0]) == str:
+            df[col] = df[col].str.upper()
+  
 new_cols = ['Name','Address','City','Province','Country','Latitude','Longitude','Admin Area','Facility Level','Sector','HIVCapable','TBCapable','Factor 1','Factor 2','Factor 3','Factor 4','Location Type','Status','Notes']
 old_cols = df.columns
 
@@ -28,12 +70,54 @@ for i in range(19):
 
 Input_HF = df.drop_duplicates()
 
+#Reading Labs sheet
 df = pd.read_excel(sys.argv[1],sheet_name= 'Labs',index_col=None)
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
-for col in df.columns:
-    if pd.notna(df[col][0]) and type(df[col][0]) == str:
-        df[col] = df[col].str.upper()
+#Checking for the empty sheet
+if df.shape[0] == 0:
+    print('Error:Labs sheet is empty')
+    sys.exit()
+    
+#Required columns
+labsCols = ['Sites*', 'Address*', 'City*', 'Admin Area 1*', 'Country*', 'Latitude*',
+       'Longitude*', 'Admin Area 2*', 'Facility Level*', 'Sector*',
+       'HIVCapable*', 'TBCapable*', 'Factor 1', 'Factor 2', 'Factor 3',
+       'Factor 4', 'Location Type*', 'Status*']
+
+#Checking if all the necessary columns are present(additional check)
+if not all(item in df.columns for item in labsCols):
+    print(f'Error:All required columns are not present in Labs sheet')
+    sys.exit()   
+
+df = df[labsCols]
+
+notNullCols = ['Sites*','Admin Area 1*', 'Country*', 'Latitude*',
+       'Longitude*', 'Admin Area 2*', 'Facility Level*', 'Sector*', 'Location Type*', 'Status*']
+
+#Checking for null value and blocking if found.
+for col in notNullCols:
+    if df[col].isna().values.any():
+        print(f'Error:Labs Sheet has null value in its {col} column')
+        sys.exit()
+
+#Columnns having numeric values
+numCols = [ 'Latitude*','Longitude*']
+
+#Checking for type mismatch as well as converting them to appropriate datatypes.
+for col in numCols:
+    try:
+        df[col] = df[col].astype(float)
+    except:
+        print(f'Error:Datatype mismatch in {col} column in Labs sheet')
+        sys.exit()
+
+
+if df.shape[0] > 0:
+    for col in df.columns:
+        if pd.notna(df[col][0]) and type(df[col][0]) == str:
+            df[col] = df[col].str.upper()
+
 
 old_cols = df.columns
 new_cols = ['Name','Address','City','Province','Country','Latitude','Longitude','Admin Area','Facility Level','Sector','HIVCapable','TBCapable','Factor 1','Factor 2','Factor 3','Factor 4','Location Type','Status']
@@ -45,13 +129,48 @@ for i in range(18):
 
 Input_Lab = df.drop_duplicates()
 
+#Reading Hubs sheet.
 df = pd.read_excel(sys.argv[1],index_col=None,sheet_name= 'Hubs')
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
 
-for col in df.columns:
-    if pd.notna(df[col][0]) and type(df[col][0]) == str:
-        df[col] = df[col].str.upper()
+hubsCols=['Sites*', 'Address*', 'City*', 'Admin Area 1*', 'Country*', 'Latitude*',
+       'Longitude*', 'Admin Area 2*', 'Facility Level*', 'Sector*',
+       'HIVCapable*', 'TBCapable*', 'Factor 1', 'Factor 2', 'Factor 3',
+       'Factor 4', 'Location Type*', 'Status*']
+
+#Checking if all the necessary columns are present(additional check)
+if not all(item in df.columns for item in hubsCols):
+    print(f'Error:All required columns are not present in Hubs sheet')
+    sys.exit()    
+
+df = df[hubsCols]
+
+#Columns that cannot have null values in them.
+notNullCols = ['Sites*','Admin Area 1*', 'Country*', 'Latitude*',
+       'Longitude*', 'Admin Area 2*', 'Facility Level*', 'Sector*', 'Location Type*', 'Status*']
+
+#Checking for null value and blocking if found.
+for col in notNullCols:
+    if df[col].isna().values.any():
+        print(f'Error:Hubs sheet has null value in its {col} column')
+        sys.exit()
+
+#Columnns having numeric values
+numCols = [ 'Latitude*','Longitude*']
+
+#Checking for type mismatch as well as converting them to appropriate datatypes.
+for col in numCols:
+    try:
+        df[col] = df[col].astype(float)
+    except:
+        print(f'Error:Datatype mismatch in {col} column in Hubs sheet')
+        sys.exit()
+
+if df.shape[0] > 0:
+    for col in df.columns:
+        if pd.notna(df[col][0]) and type(df[col][0]) == str:
+            df[col] = df[col].str.upper()
 
 old_cols = df.columns
 new_cols = ['Name','Address','City','Province','Country','Latitude','Longitude','Admin Area','Facility Level','Sector','HIVCapable','TBCapable','Factor 1','Factor 2','Factor 3','Factor 4','Location Type','Status']
@@ -110,12 +229,36 @@ WIP_Sites = pd.concat(df_lis)
 
 Output_Sites = WIP_Sites
 
+#Reading Tests sheet
 df = pd.read_excel(sys.argv[1],index_col=None,sheet_name= 'Tests')
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
-for col in df.columns:
-    if pd.notna(df[col][0]) and type(df[col][0]) == str:
-        df[col] = df[col].str.upper()
+if df.shape[0] == 0:
+    print('Error:Tests sheet is empty')
+    sys.exit()
+
+testsCols= ['Test*', 'Referral Type*', 'Status*', 'Notes']
+notNullCols = ['Test*', 'Status*']
+# numCols = []
+
+#Checking if all the necessary columns are present(additional check)
+if not all(item in df.columns for item in testsCols):
+    print(f'Error:All required columns are not present in Tests sheet')
+    sys.exit()    
+
+df = df[testsCols]
+
+#Checking for null value and blocking if found.
+for col in notNullCols:
+    if df[col].isna().values.any():
+        print(f'Error:Tests Sheet has null value in its {col} column')
+        sys.exit()
+
+if df.shape[0] > 0:
+    for col in df.columns:
+        if pd.notna(df[col][0]) and type(df[col][0]) == str:
+            df[col] = df[col].str.upper()
+
 
 old_cols = df.columns
 new_cols = ['Name','Referral Type','Status','Notes']
@@ -130,14 +273,43 @@ Output_Tests = pd.DataFrame()
 Output_Tests['Test Name'] = df['Name']
 Output_Tests = Output_Tests.drop_duplicates()
 
-#reading demand data 
+#Reading HF Demand sheet
 df = pd.read_excel(sys.argv[1],index_col=None,sheet_name= "HF Demand")
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
+if df.shape[0] == 0:
+    print('Error:HF Demand sheet is empty')
+    sys.exit()
 
-for col in df.columns:
-    if pd.notna(df[col][0]) and type(df[col][0]) == str:
-        df[col] = df[col].str.upper()
+HFDemandCols = ['Health Facility*', 'Test*', 'Demand*', 'Status*', 'Notes']
+notNullCols = ['Health Facility*', 'Test*', 'Demand*', 'Status*']
+numCols = ['Demand*']
+
+#Checking if all the necessary columns are present(additional check)
+if not all(item in df.columns for item in HFDemandCols):
+    print(f'Error:All required columns are not present in HF Demand sheet')
+    sys.exit()    
+
+df = df[HFDemandCols]
+
+#Checking for null value and blocking if found.
+for col in notNullCols:
+    if df[col].isna().values.any():
+        print(f'Error:HF Demand Sheet has null value in its {col} column')
+        sys.exit()
+
+#Checking for type mismatch as well as converting them to appropriate datatypes.
+for col in numCols:
+    try:
+        df[col] = df[col].astype(float)
+    except:
+        print(f'Error:Datatype mismatch in {col} column in Health HF Demand')
+        sys.exit()
+
+if df.shape[0] > 0:
+    for col in df.columns:
+        if pd.notna(df[col][0]) and type(df[col][0]) == str:
+            df[col] = df[col].str.upper()
 
 old_cols = df.columns
 new_cols = ['HealthFacility','Test','Demand','Status','Notes']
@@ -155,13 +327,43 @@ df1['Quantity'] = df1['Demand'].astype(str)
 
 Output_HFDemand = df1[["HealthFacility","Test","Notes","Quantity"]].drop_duplicates()
 
+#Reading Lab Device Parameters
 df = pd.read_excel(sys.argv[1],index_col=None,sheet_name= "Lab Device Parameters")
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
+if df.shape[0] == 0:
+    print('Error:Lab Device Parameters sheet is empty')
+    sys.exit()
 
-for col in df.columns:
-    if pd.notna(df[col][0]) and type(df[col][0]) == str:
-        df[col] = df[col].str.upper()
+labDeviceParamsCols = ['Device*', 'Lab*', 'No of Existing Devices*','Maximum number of Shifts*', 'Status*', 'Notes']
+notNullCols = ['Device*', 'Lab*', 'No of Existing Devices*','Maximum number of Shifts*', 'Status*']
+numCols = [ 'No of Existing Devices*','Maximum number of Shifts*']
+
+if not all(item in df.columns for item in labDeviceParamsCols):
+    print(f'Error:All required columns are not present in Lab Device Parameters')
+    sys.exit()    
+
+df = df[labDeviceParamsCols]
+
+#Checking for null value and blocking if found.
+for col in notNullCols:
+    if df[col].isna().values.any():
+        print(f'Error:Lab Device Parameters Sheet has null value in its {col} column')
+        sys.exit()
+
+#Checking for type mismatch as well as converting them to appropriate datatypes.
+for col in numCols:
+    try:
+        df[col] = df[col].astype(float)
+    except:
+        print(f'Error:Datatype mismatch in {col} column in Lab Device Parameters')
+        sys.exit()
+
+
+if df.shape[0] > 0:
+    for col in df.columns:
+        if pd.notna(df[col][0]) and type(df[col][0]) == str:
+            df[col] = df[col].str.upper()
 
 df = df.drop_duplicates()
 
@@ -227,15 +429,44 @@ Val_DuplicateSites = pd.DataFrame(columns=['Data' , 'Warning'])
 Val_DuplicateSites['Data'] = Output_SitesV1[Output_SitesV1.duplicated()].drop_duplicates()['Name']
 Val_DuplicateSites['Warning'] = 'Duplicate sites in model input'
 
+#Reading Device Test Parameters
 df = pd.read_excel(sys.argv[1],index_col=None,sheet_name= "Device Test Parameters")
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
-df = df.drop(columns=['Z_DeviceTest'] ,axis = 1)
+if df.shape[0] == 0:
+    print('Error:Device Test Parameters sheet is empty')
+    sys.exit()
 
-for col in df.columns:
-    if pd.notna(df[col][0]) and type(df[col][0]) == str:
-        df[col] = df[col].str.upper()
-        
+deviceTestParamsCols = ['Device*', 'Test*', 'Maximum tests per shift*', 'Cost per test*','Status*', 'Notes']
+notNullCols = ['Device*', 'Test*', 'Maximum tests per shift*', 'Cost per test*','Status*']
+numCols = ['Maximum tests per shift*', 'Cost per test*']
+
+if not all(item in df.columns for item in deviceTestParamsCols):
+    print(f'Error:All required columns are not present in Device Test Parameters')
+    sys.exit()    
+
+df = df.loc[:,deviceTestParamsCols]
+
+#Checking for null value and blocking if found.
+for col in notNullCols:
+    if df[col].isna().values.any():
+        print(f'Error:Device Test Parameters Sheet has null value in its {col} column')
+        sys.exit()
+
+#Checking for type mismatch as well as converting them to appropriate datatypes.
+for col in numCols:
+    try:
+        df[col] = df[col].astype(float)
+    except:
+        print(f'Error:Datatype mismatch in {col} column in Device Test Parameters')
+        sys.exit()
+
+
+if df.shape[0] > 0:
+    for col in df.columns:
+        if pd.notna(df[col][0]) and type(df[col][0]) == str:
+            df[col] = df[col].str.upper()
+            
 old_cols = df.columns
 new_cols = ['Machine Type','Test Type','Capacity','Cost of Test','Status','Notes']
 
@@ -259,15 +490,43 @@ df3 = df3.rename(columns={'New_Device':'Device'})
 
 NewOutput_DeviceTest = df3.copy()
 
+#Reading Devices sheet
 df = pd.read_excel(sys.argv[1],index_col=None,sheet_name= "Devices")
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
-for col in df.columns:
-    if pd.notna(df[col][0]) and type(df[col][0]) == str:
-        df[col] = df[col].str.upper()
 
+if df.shape[0] == 0:
+    print('Error:Devices sheet is empty')
+    sys.exit()
 
-df = df.drop(columns = ['Number of Modules'] , axis = 1 )
+devicesCols = ['Device*', 'Shift Cost*', 'Overhead Cost*', 'StartupCost*','Available Hours per shift*', 'Status*', 'Notes']
+notNullCols = ['Device*','Available Hours per shift*', 'Status*']
+numCols = ['Shift Cost*', 'Overhead Cost*', 'StartupCost*','Available Hours per shift*']
+
+if not all(item in df.columns for item in devicesCols):
+    print(f'Error:All required columns are not present in Devices')
+    sys.exit()    
+
+df = df.loc[:, devicesCols]
+
+#Checking for null value and blocking if found.
+for col in notNullCols:
+    if df[col].isna().values.any():
+        print(f'Error:Devices Sheet has null value in its {col} column')
+        sys.exit()
+
+#Checking for type mismatch as well as converting them to appropriate datatypes.
+for col in numCols:
+    try:
+        df[col] = df[col].astype(float)
+    except:
+        print(f'Error:Datatype mismatch in {col} column in Devices')
+        sys.exit()
+
+if df.shape[0] > 0:
+    for col in df.columns:
+        if pd.notna(df[col][0]) and type(df[col][0]) == str:
+            df[col] = df[col].str.upper()
 
 old_cols = df.columns
 new_cols = ['Device','Shift Cost','Overhead Cost','Startup Cost','Available hours','Status','Notes']
@@ -300,14 +559,40 @@ POC_Machine = list(POC_Machine)
 
 POC_Machine.append(' mPIMA')
 
+#Reading Historical Referrals Sheet
 df = pd.read_excel(sys.argv[1],index_col=None,sheet_name= "Historical Referrals")
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
-for col in df.columns:
-    if df.shape[0] == 0:
-        break
-    if pd.notna(df[col][0]) and type(df[col][0]) == str:
-        df[col] = df[col].str.upper()
+historicalReferralsCols=['Origin*', 'Origin Type*', 'Destination*', 'Destination Type*', 'Test*',
+       'Mode of Transport', 'Annual Samples referred', 'Type', 'Status*',
+       'Notes']
+notNullCols = ['Origin*', 'Origin Type*', 'Destination*', 'Destination Type*', 'Test*', 'Status*']
+numCols = ['Annual Samples referred']
+
+if not all(item in df.columns for item in historicalReferralsCols):
+    print(f'Error:All required columns are not present in Historical Referrals sheet')
+    sys.exit()    
+
+df = df.loc[:,historicalReferralsCols]
+
+#Checking for null value and blocking if found.
+for col in notNullCols:
+    if df[col].isna().values.any():
+        print(f'Error:Historical Referrals Sheet has null value in its {col} column')
+        sys.exit()
+
+#Checking for type mismatch as well as converting them to appropriate datatypes.
+for col in numCols:
+    try:
+        df[col] = df[col].astype(float)
+    except:
+        print(f'Error:Datatype mismatch in {col} column in Historical Referrals Sheet')
+        sys.exit()
+
+if df.shape[0] > 0:
+    for col in df.columns:
+        if pd.notna(df[col][0]) and type(df[col][0]) == str:
+            df[col] = df[col].str.upper()
 
 old_cols = df.columns
 new_cols = ['Origin','Origin Type' ,'Destination','Dest Type','Test','Mode','Annual Samples referred','Type','Status','Notes']
@@ -332,18 +617,43 @@ NewOutput_HistoricalReferrals = NewOutput_HistoricalReferrals.reset_index()
 
 NewOutput_LabDeviceTest = pd.merge(NewOutput_LabDevice, NewOutput_DeviceTest, on = 'Device', how='left')
 
-
+#Reading Historical Testing file.
 df = pd.read_excel(sys.argv[1],index_col=None,sheet_name= "Historical Testing")
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
+if df.shape[0] == 0:
+    print('Error:Historical Testing sheet is empty')
+    sys.exit()
 
-for col in df.columns:
-    if df.shape[0] == 0:
-        break
-    if pd.notna(df[col][0]) and type(df[col][0]) == str:
-        df[col] = df[col].str.upper()
+historicalTestingCols = ['Lab*', 'Device Type*', 'Test Type*', 'Status*','Number of tests conducted (per year)*', 'Type']
+notNullCols = ['Lab*', 'Device Type*', 'Test Type*', 'Status*','Number of tests conducted (per year)*']
+numCols = ['Number of tests conducted (per year)*']
 
-df = df.drop(columns = ['LabDevice','DataConsistency'] , axis = 1)
+if not all(item in df.columns for item in historicalTestingCols):
+    print(f'Error:All required columns are not present in Historical Testing sheet')
+    sys.exit()    
+
+df = df.loc[:,historicalTestingCols]
+
+#Checking for null value and blocking if found.
+for col in notNullCols:
+    if df[col].isna().values.any():
+        print(f'Error:Historical Referrals Sheet has null value in its {col} column')
+        sys.exit()
+
+#Checking for type mismatch as well as converting them to appropriate datatypes.
+for col in numCols:
+    try:
+        df[col] = df[col].astype(float)
+    except:
+        print(f'Error:Datatype mismatch in {col} column in Historical Referrals Sheet')
+        sys.exit()
+
+#Changing the strings to upper case + extra check if records exits in the table.
+if df.shape[0] > 0:
+    for col in df.columns:
+        if pd.notna(df[col][0]) and type(df[col][0]) == str:
+            df[col] = df[col].str.upper()
 
 
 old_cols = df.columns
